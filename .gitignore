@@ -41,3 +41,11 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# database (VPS is source of truth)
+dev.db
+dev.db-shm
+dev.db-wal
+
+# uploads (VPS is source of truth)
+/public/uploads/
