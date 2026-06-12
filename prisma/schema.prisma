@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("member") // "admin" or "member"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  prompts   Prompt[]
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  color       String   @default("#6366f1")
+  createdAt   DateTime @default(now())
+  prompts     Prompt[] @relation("PromptCategories")
+}
+
+model Prompt {
+  id             String     @id @default(cuid())
+  title          String
+  aiTool         String
+  promptText     String
+  negativePrompt String?
+  modelVersion   String?
+  aspectRatio    String?
+  beforeImage    String?    // Before/reference image (file path or URL)
+  afterImage     String?    // Generated result image (file path or URL)
+  settings       String?    // JSON string for additional settings
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  userId         String
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categories     Category[] @relation("PromptCategories")
+
+  @@index([aiTool])
+  @@index([createdAt])
+}
