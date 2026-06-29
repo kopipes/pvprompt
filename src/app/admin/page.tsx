@@ -21,6 +21,8 @@ export default function AdminPage() {
     const { user, loading: authLoading } = useAuth();
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
     const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string; email: string }>({
         isOpen: false,
         id: "",
@@ -61,6 +63,7 @@ export default function AdminPage() {
     }, [user, authLoading, router]);
 
     const handleRoleChange = async (userId: string, newRole: string) => {
+        setErrorMessage("");
         try {
             const res = await fetch(`/api/users/${userId}`, {
                 method: "PUT",
@@ -73,12 +76,13 @@ export default function AdminPage() {
             }
             await fetchUsers();
         } catch (err) {
-            alert(err instanceof Error ? err.message : "Failed to update role");
+            setErrorMessage(err instanceof Error ? err.message : "Failed to update role");
         }
     };
 
     const handleDelete = async () => {
         setDeleting(true);
+        setErrorMessage("");
         try {
             const res = await fetch(`/api/users/${deleteModal.id}`, { method: "DELETE" });
             if (!res.ok) {
@@ -88,15 +92,16 @@ export default function AdminPage() {
             await fetchUsers();
             setDeleteModal({ isOpen: false, id: "", email: "" });
         } catch (err) {
-            alert(err instanceof Error ? err.message : "Failed to delete user");
+            setErrorMessage(err instanceof Error ? err.message : "Failed to delete user");
         } finally {
             setDeleting(false);
         }
     };
 
     const handleResetPassword = async () => {
+        setErrorMessage("");
         if (!newPassword || newPassword.length < 6) {
-            alert("Password must be at least 6 characters");
+            setErrorMessage("Password must be at least 6 characters");
             return;
         }
 
@@ -111,11 +116,12 @@ export default function AdminPage() {
                 const data = await res.json();
                 throw new Error(data.error || "Failed to reset password");
             }
-            alert("Password reset successfully!");
+            setSuccessMessage("Password reset successfully");
             setResetModal({ isOpen: false, id: "", email: "" });
             setNewPassword("");
+            setTimeout(() => setSuccessMessage(""), 3000);
         } catch (err) {
-            alert(err instanceof Error ? err.message : "Failed to reset password");
+            setErrorMessage(err instanceof Error ? err.message : "Failed to reset password");
         } finally {
             setResetting(false);
         }
@@ -146,6 +152,17 @@ export default function AdminPage() {
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Panel</h1>
                 <p className="text-gray-500">Manage users, roles, and passwords</p>
             </div>
+
+            {errorMessage && (
+                <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-[#b42d27] rounded-lg text-sm">
+                    {errorMessage}
+                </div>
+            )}
+            {successMessage && (
+                <div className="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+                    {successMessage}
+                </div>
+            )}
 
             <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">

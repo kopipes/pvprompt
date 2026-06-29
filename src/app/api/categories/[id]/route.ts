@@ -6,24 +6,31 @@ interface RouteParams {
     params: Promise<{ id: string }>;
 }
 
-// PUT - Update category
+// PUT - Update category (admin only)
 export async function PUT(request: NextRequest, { params }: RouteParams) {
     try {
         const auth = await getAuthUser();
-        if (!auth) {
+        if (!auth || auth.role !== "admin") {
             return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
+                { error: "Forbidden" },
+                { status: 403 }
             );
         }
 
         const { id } = await params;
         const { name, description, color } = await request.json();
 
+        if (!name?.trim()) {
+            return NextResponse.json(
+                { error: "Category name is required" },
+                { status: 400 }
+            );
+        }
+
         const category = await prisma.category.update({
             where: { id },
             data: {
-                name,
+                name: name.trim(),
                 description,
                 color,
             },
@@ -39,14 +46,14 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 }
 
-// DELETE - Delete category
+// DELETE - Delete category (admin only)
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
     try {
         const auth = await getAuthUser();
-        if (!auth) {
+        if (!auth || auth.role !== "admin") {
             return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
+                { error: "Forbidden" },
+                { status: 403 }
             );
         }
 

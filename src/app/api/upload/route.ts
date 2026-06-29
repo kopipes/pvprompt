@@ -24,10 +24,15 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Validate file type (images only)
-        const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+        // Validate file type and derive extension from MIME type (don't trust client extension)
+        const mimeToExt: Record<string, string> = {
+            "image/jpeg": ".jpg",
+            "image/png": ".png",
+            "image/gif": ".gif",
+            "image/webp": ".webp",
+        };
 
-        if (!validImageTypes.includes(file.type)) {
+        if (!mimeToExt[file.type]) {
             return NextResponse.json(
                 { error: "Invalid file type. Supported: JPEG, PNG, GIF, WebP" },
                 { status: 400 }
@@ -43,9 +48,9 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Generate unique filename
-        const ext = path.extname(file.name) || ".jpg";
-        const baseName = path.basename(file.name, ext).replace(/[^a-zA-Z0-9]/g, "_");
+        // Generate unique filename using server-determined extension from MIME type
+        const ext = mimeToExt[file.type];
+        const baseName = path.basename(file.name, path.extname(file.name)).replace(/[^a-zA-Z0-9]/g, "_").slice(0, 64);
         const timestamp = Date.now();
         const filename = `${baseName}_${timestamp}${ext}`;
 
