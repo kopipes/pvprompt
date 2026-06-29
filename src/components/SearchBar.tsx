@@ -12,6 +12,7 @@ interface Category {
 interface SearchBarProps {
     onSearch: (params: SearchParams) => void;
     categories: Category[];
+    initialCategoryId?: string;
 }
 
 interface SearchParams {
@@ -20,11 +21,11 @@ interface SearchParams {
     categoryId: string;
 }
 
-export default function SearchBar({ onSearch, categories }: SearchBarProps) {
+export default function SearchBar({ onSearch, categories, initialCategoryId = "" }: SearchBarProps) {
     const [query, setQuery] = useState("");
     const [aiTool, setAiTool] = useState("");
-    const [categoryId, setCategoryId] = useState("");
-    const [showFilters, setShowFilters] = useState(false);
+    const [categoryId, setCategoryId] = useState(initialCategoryId);
+    const [showFilters, setShowFilters] = useState(!!initialCategoryId);
 
     // Debounced search
     const debouncedSearch = useCallback(

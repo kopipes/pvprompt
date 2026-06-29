@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import PromptCard from "@/components/PromptCard";
 import SearchBar from "@/components/SearchBar";
 
@@ -27,14 +28,25 @@ interface SearchParams {
   categoryId: string;
 }
 
-export default function HomePage() {
+export default function HomePageWrapper() {
+  return (
+    <Suspense>
+      <HomePage />
+    </Suspense>
+  );
+}
+
+function HomePage() {
+  const searchParamsFromUrl = useSearchParams();
+  const initialCategoryId = searchParamsFromUrl.get("categoryId") ?? "";
+
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useState<SearchParams>({
     q: "",
     aiTool: "",
-    categoryId: "",
+    categoryId: initialCategoryId,
   });
 
   // Fetch categories on mount
@@ -87,7 +99,7 @@ export default function HomePage() {
           </div>
 
           {/* Search Bar */}
-          <SearchBar onSearch={setSearchParams} categories={categories} />
+          <SearchBar onSearch={setSearchParams} categories={categories} initialCategoryId={initialCategoryId} />
 
           {/* Stats */}
           <div className="flex justify-center gap-8 text-center">

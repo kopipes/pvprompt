@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthContext";
 import ConfirmModal from "@/components/ConfirmModal";
 
@@ -23,6 +24,7 @@ const COLOR_PRESETS = [
 
 export default function CategoriesPage() {
     const { user } = useAuth();
+    const router = useRouter();
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -247,19 +249,25 @@ export default function CategoriesPage() {
                             key={category.id}
                             className="bg-white rounded-xl border border-gray-200 p-5 flex items-center justify-between hover:border-[#b42d27] transition-colors"
                         >
-                            <div className="flex items-center gap-4">
+                            <button
+                                type="button"
+                                onClick={() => router.push(`/?categoryId=${category.id}`)}
+                                className="flex items-center gap-4 flex-1 text-left min-w-0 cursor-pointer"
+                            >
                                 <div
                                     className="w-4 h-4 rounded-full flex-shrink-0"
                                     style={{ backgroundColor: category.color }}
                                 />
-                                <div>
-                                    <h3 className="text-lg font-semibold text-gray-900">{category.name}</h3>
+                                <div className="min-w-0">
+                                    <h3 className="text-lg font-semibold text-gray-900 hover:text-[#b42d27] transition-colors">
+                                        {category.name}
+                                    </h3>
                                     {category.description && (
                                         <p className="text-sm text-gray-500">{category.description}</p>
                                     )}
                                 </div>
-                            </div>
-                            <div className="flex items-center gap-4">
+                            </button>
+                            <div className="flex items-center gap-4 flex-shrink-0 ml-4">
                                 <span className="text-sm text-gray-400">
                                     {category._count.prompts} prompt{category._count.prompts !== 1 ? "s" : ""}
                                 </span>
