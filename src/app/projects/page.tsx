@@ -71,7 +71,7 @@ export default function ProjectsPage() {
                 throw new Error(data.error || "Failed to create");
             }
             const data = await res.json();
-            setProjects((prev) => [data.project, ...prev]);
+            setProjects((prev) => [{ ...data.project, entries: [] }, ...prev]);
             setShowForm(false);
             setFormData({ title: "", description: "" });
             router.push(`/projects/${data.project.id}`);
@@ -195,7 +195,7 @@ export default function ProjectsPage() {
             ) : (
                 <div className="grid gap-4">
                     {projects.map((project) => {
-                        const thumb = project.entries[0]?.images[0]?.url;
+                        const thumb = project.entries?.[0]?.images?.[0]?.url;
                         return (
                             <div
                                 key={project.id}
