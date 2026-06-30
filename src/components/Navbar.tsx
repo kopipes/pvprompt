@@ -41,6 +41,14 @@ export default function Navbar() {
                             >
                                 Categories
                             </Link>
+                            {user && (
+                                <Link
+                                    href="/projects"
+                                    className="text-gray-600 hover:text-[#b42d27] transition-colors font-medium"
+                                >
+                                    Projects
+                                </Link>
+                            )}
                             {isAdmin && (
                                 <Link
                                     href="/admin"
@@ -124,6 +132,15 @@ export default function Navbar() {
                         >
                             Categories
                         </Link>
+                        {user && (
+                            <Link
+                                href="/projects"
+                                className="block text-gray-600 hover:text-[#b42d27] transition-colors font-medium py-2"
+                                onClick={() => setShowMobileMenu(false)}
+                            >
+                                Projects
+                            </Link>
+                        )}
                         {isAdmin && (
                             <Link
                                 href="/admin"
