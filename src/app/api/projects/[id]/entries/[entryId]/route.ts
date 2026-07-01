@@ -27,7 +27,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         const entry = await prisma.projectEntry.findUnique({
             where: { id: entryId },
-            include: { images: { orderBy: { order: "asc" } } },
+            include: {
+                images: { orderBy: { order: "asc" } },
+                prompt: { select: { id: true, title: true, aiTool: true } },
+            },
         });
 
         if (!entry || entry.projectId !== id) {
@@ -65,7 +68,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
             return NextResponse.json({ error: "Entry not found" }, { status: 404 });
         }
 
-        const { notes, promptText, inputImages, resultImages } = await request.json();
+        const { notes, promptText, inputImages, resultImages, promptId } = await request.json();
 
         await prisma.projectImage.deleteMany({ where: { entryId } });
 
@@ -74,6 +77,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
             data: {
                 notes: notes?.trim() || null,
                 promptText: promptText?.trim() || null,
+                promptId: promptId !== undefined ? (promptId || null) : undefined,
                 images: {
                     create: [
                         ...(inputImages || []).map((img: { url: string; order: number }, i: number) => ({
@@ -89,7 +93,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
                     ],
                 },
             },
-            include: { images: { orderBy: { order: "asc" } } },
+            include: {
+                images: { orderBy: { order: "asc" } },
+                prompt: { select: { id: true, title: true, aiTool: true } },
+            },
         });
 
         return NextResponse.json({ entry });

@@ -19,6 +19,7 @@ interface ProjectEntry {
     promptText: string | null;
     createdAt: string;
     images: ProjectImage[];
+    prompt: { id: string; title: string; aiTool: string } | null;
 }
 
 interface Project {
@@ -255,7 +256,17 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                 {/* Prompt */}
                                 {entry.promptText && (
                                     <div>
-                                        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Prompt</p>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Prompt</p>
+                                            {entry.prompt && (
+                                                <Link
+                                                    href={`/prompts/${entry.prompt.id}`}
+                                                    className="text-xs px-2 py-0.5 rounded-md bg-red-50 text-[#b42d27] border border-red-100 hover:bg-red-100 transition-colors"
+                                                >
+                                                    From library: {entry.prompt.title}
+                                                </Link>
+                                            )}
+                                        </div>
                                         <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans bg-gray-50 rounded-lg px-4 py-3 border border-gray-100">{entry.promptText}</pre>
                                     </div>
                                 )}

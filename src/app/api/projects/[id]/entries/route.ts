@@ -29,7 +29,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         const entries = await prisma.projectEntry.findMany({
             where: { projectId: id },
-            include: { images: { orderBy: { order: "asc" } } },
+            include: {
+                images: { orderBy: { order: "asc" } },
+                prompt: { select: { id: true, title: true, aiTool: true } },
+            },
             orderBy: { createdAt: "asc" },
         });
 
@@ -70,13 +73,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const { notes, promptText, inputImages, resultImages } = await request.json();
+        const { notes, promptText, inputImages, resultImages, promptId } = await request.json();
 
         // inputImages and resultImages are arrays of { url: string, order: number }
         const entry = await prisma.projectEntry.create({
             data: {
                 notes: notes?.trim() || null,
                 promptText: promptText?.trim() || null,
+                promptId: promptId || null,
                 projectId: id,
                 images: {
                     create: [
@@ -93,7 +97,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     ],
                 },
             },
-            include: { images: { orderBy: { order: "asc" } } },
+            include: {
+                images: { orderBy: { order: "asc" } },
+                prompt: { select: { id: true, title: true, aiTool: true } },
+            },
         });
 
         // Bump project updatedAt

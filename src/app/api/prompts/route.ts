@@ -12,13 +12,21 @@ export async function GET(request: NextRequest) {
         const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20") || 20));
         const skip = (page - 1) * limit;
 
-        const where: Record<string, unknown> = {};
+        const mine = searchParams.get("mine") === "true";
+        const auth = await getAuthUser();
+
+        const where: Record<string, unknown> = {
+            projectEntries: { none: {} },
+        };
 
         if (aiTool) where.aiTool = aiTool;
         if (categoryId) {
             where.categories = {
                 some: { id: categoryId },
             };
+        }
+        if (mine && auth) {
+            where.userId = auth.userId;
         }
 
         const [prompts, total] = await Promise.all([

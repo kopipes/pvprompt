@@ -24,6 +24,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                     orderBy: { createdAt: "asc" },
                     include: {
                         images: { orderBy: { order: "asc" } },
+                        prompt: { select: { id: true, title: true, aiTool: true } },
                     },
                 },
                 _count: { select: { entries: true } },

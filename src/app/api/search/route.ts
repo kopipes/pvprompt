@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
         }
 
         const where: Record<string, unknown> = {
+            projectEntries: { none: {} },
             OR: [
                 { title: { contains: q } },
                 { promptText: { contains: q } },

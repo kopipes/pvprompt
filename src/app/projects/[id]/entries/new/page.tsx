@@ -3,6 +3,7 @@
 import { useState, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import PromptPickerModal from "@/components/PromptPickerModal";
 
 interface UploadedImage {
     url: string;
@@ -19,6 +20,9 @@ export default function NewEntryPage({ params }: PageProps) {
 
     const [notes, setNotes] = useState("");
     const [promptText, setPromptText] = useState("");
+    const [promptId, setPromptId] = useState<string | null>(null);
+    const [linkedPromptTitle, setLinkedPromptTitle] = useState<string | null>(null);
+    const [pickerOpen, setPickerOpen] = useState(false);
     const [inputImages, setInputImages] = useState<UploadedImage[]>([]);
     const [resultImages, setResultImages] = useState<UploadedImage[]>([]);
     const [uploadingInput, setUploadingInput] = useState(false);
@@ -73,7 +77,7 @@ export default function NewEntryPage({ params }: PageProps) {
             const res = await fetch(`/api/projects/${id}/entries`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ notes, promptText, inputImages, resultImages }),
+                body: JSON.stringify({ notes, promptText, inputImages, resultImages, promptId }),
             });
             if (!res.ok) {
                 const data = await res.json();
@@ -164,7 +168,29 @@ export default function NewEntryPage({ params }: PageProps) {
 
                 {/* Prompt */}
                 <div className="bg-white rounded-2xl border border-gray-200 p-5">
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">Prompt Used</label>
+                    <div className="flex items-center justify-between mb-2">
+                        <label className="block text-sm font-semibold text-gray-900">Prompt Used</label>
+                        <button
+                            type="button"
+                            onClick={() => setPickerOpen(true)}
+                            className="text-xs px-3 py-1 rounded-lg border border-[#b42d27] text-[#b42d27] hover:bg-[#b42d27] hover:text-white transition-colors"
+                        >
+                            Pick from library
+                        </button>
+                    </div>
+                    {linkedPromptTitle && (
+                        <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-red-50 border border-red-100 rounded-lg text-xs text-[#b42d27]">
+                            <span>From library: <span className="font-semibold">{linkedPromptTitle}</span></span>
+                            <button
+                                type="button"
+                                onClick={() => { setPromptId(null); setLinkedPromptTitle(null); }}
+                                className="ml-auto text-gray-400 hover:text-gray-600 transition-colors leading-none"
+                                aria-label="Clear linked prompt"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    )}
                     <textarea
                         value={promptText}
                         onChange={(e) => setPromptText(e.target.value)}
@@ -236,6 +262,22 @@ export default function NewEntryPage({ params }: PageProps) {
                     </button>
                 </div>
             </form>
+
+            <PromptPickerModal
+                isOpen={pickerOpen}
+                onClose={() => setPickerOpen(false)}
+                onSelect={(prompt) => {
+                    setPromptText(prompt.promptText);
+                    setPromptId(prompt.id);
+                    setLinkedPromptTitle(prompt.title);
+                    if (prompt.beforeImage) {
+                        setInputImages([{ url: prompt.beforeImage, order: 0 }]);
+                    }
+                    if (prompt.afterImage) {
+                        setResultImages([{ url: prompt.afterImage, order: 0 }]);
+                    }
+                }}
+            />
         </div>
     );
 }

@@ -31,21 +31,22 @@ model Category {
 }
 
 model Prompt {
-  id             String     @id @default(cuid())
+  id             String         @id @default(cuid())
   title          String
   aiTool         String
   promptText     String
   negativePrompt String?
   modelVersion   String?
   aspectRatio    String?
-  beforeImage    String?    // Before/reference image (file path or URL)
-  afterImage     String?    // Generated result image (file path or URL)
-  settings       String?    // JSON string for additional settings
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  beforeImage    String?        // Before/reference image (file path or URL)
+  afterImage     String?        // Generated result image (file path or URL)
+  settings       String?        // JSON string for additional settings
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
   userId         String
-  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  categories     Category[] @relation("PromptCategories")
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categories     Category[]     @relation("PromptCategories")
+  projectEntries ProjectEntry[]
 
   @@index([aiTool])
   @@index([createdAt])
@@ -68,15 +69,18 @@ model Project {
 model ProjectEntry {
   id         String         @id @default(cuid())
   notes      String?        // optional notes / context for this iteration
-  promptText String?        // the prompt used
+  promptText String?        // editable snapshot of the prompt used
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
   projectId  String
   project    Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  promptId   String?        // optional FK to the source prompt in the library
+  prompt     Prompt?        @relation(fields: [promptId], references: [id], onDelete: SetNull)
   images     ProjectImage[]
 
   @@index([projectId])
   @@index([createdAt])
+  @@index([promptId])
 }
 
 model ProjectImage {
