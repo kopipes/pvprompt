@@ -53,6 +53,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
     const [deleteProjectModal, setDeleteProjectModal] = useState(false);
     const [deletingProject, setDeletingProject] = useState(false);
     const [lightbox, setLightbox] = useState<string | null>(null);
+    const [collapsedEntries, setCollapsedEntries] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         if (!authLoading && !user) router.push("/");
@@ -65,6 +66,10 @@ export default function ProjectDetailPage({ params }: PageProps) {
             const data = await res.json();
             setProject(data.project);
             setEditData({ title: data.project.title, description: data.project.description || "" });
+            // Collapse all entries except the last one on initial load
+            if (data.project.entries.length > 1) {
+                setCollapsedEntries(new Set(data.project.entries.slice(0, -1).map((e: ProjectEntry) => e.id)));
+            }
         } catch {
             router.push("/projects");
         } finally {
@@ -135,6 +140,15 @@ export default function ProjectDetailPage({ params }: PageProps) {
     const canEdit = isOwner || user?.role === "admin";
     const inputImages = (entry: ProjectEntry) => entry.images.filter((i) => i.type === "input");
     const resultImages = (entry: ProjectEntry) => entry.images.filter((i) => i.type === "result");
+
+    const toggleCollapse = (entryId: string) => {
+        setCollapsedEntries((prev) => {
+            const next = new Set(prev);
+            if (next.has(entryId)) next.delete(entryId);
+            else next.add(entryId);
+            return next;
+        });
+    };
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-8 md:py-12">
@@ -214,22 +228,37 @@ export default function ProjectDetailPage({ params }: PageProps) {
                 </div>
             ) : (
                 <div className="space-y-6">
-                    {project.entries.map((entry, idx) => (
+                    {project.entries.map((entry, idx) => {
+                        const isCollapsed = collapsedEntries.has(entry.id);
+                        return (
                         <div key={entry.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                            {/* Entry header */}
-                            <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-gray-50">
-                                <span className="text-sm font-medium text-gray-500">Entry #{idx + 1}</span>
+                            {/* Entry header — click to collapse/expand */}
+                            <button
+                                type="button"
+                                onClick={() => toggleCollapse(entry.id)}
+                                className="w-full flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-gray-500">Entry #{idx + 1}</span>
+                                    {isCollapsed && entry.promptText && (
+                                        <span className="text-xs text-gray-400 truncate max-w-[200px] sm:max-w-sm">
+                                            — {entry.promptText.slice(0, 60)}{entry.promptText.length > 60 ? "…" : ""}
+                                        </span>
+                                    )}
+                                </div>
                                 <div className="flex items-center gap-3">
                                     <span className="text-xs text-gray-400">{new Date(entry.createdAt).toLocaleDateString()}</span>
                                     {canEdit && (
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                                             <Link href={`/projects/${id}/entries/${entry.id}/edit`} className="text-xs text-gray-400 hover:text-gray-700 transition-colors">Edit</Link>
                                             <button type="button" onClick={() => setDeleteModal({ isOpen: true, entryId: entry.id, idx })} className="text-xs text-gray-400 hover:text-[#b42d27] transition-colors">Delete</button>
                                         </div>
                                     )}
+                                    <span className="text-gray-400 text-xs">{isCollapsed ? "▶" : "▼"}</span>
                                 </div>
-                            </div>
+                            </button>
 
+                            {!isCollapsed && (
                             <div className="p-5 space-y-4">
                                 {/* Notes */}
                                 {entry.notes && (
@@ -285,8 +314,10 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                     </div>
                                 )}
                             </div>
+                            )}
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
 
