@@ -339,8 +339,29 @@ export default function ProjectDetailPage({ params }: PageProps) {
 
             {/* Lightbox */}
             {lightbox && (
-                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={() => setLightbox(null)}>
-                    <img src={lightbox} alt="preview" className="max-w-full max-h-full rounded-xl shadow-2xl object-contain" />
+                <div
+                    className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4"
+                    onClick={() => setLightbox(null)}
+                    onKeyDown={(e) => e.key === "Escape" && setLightbox(null)}
+                    tabIndex={-1}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Image preview"
+                >
+                    <button
+                        type="button"
+                        onClick={() => setLightbox(null)}
+                        className="absolute top-4 right-4 text-white/70 hover:text-white text-3xl leading-none transition-colors"
+                        aria-label="Close"
+                    >
+                        ✕
+                    </button>
+                    <img
+                        src={lightbox}
+                        alt="preview"
+                        className="max-w-full max-h-[90vh] rounded-xl shadow-2xl object-contain"
+                        onClick={(e) => e.stopPropagation()}
+                    />
                 </div>
             )}
 
