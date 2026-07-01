@@ -32,6 +32,8 @@ export default function ProjectsPage() {
     });
     const [deleting, setDeleting] = useState(false);
     const [search, setSearch] = useState("");
+    const [page, setPage] = useState(1);
+    const PAGE_SIZE = 10;
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -97,7 +99,17 @@ export default function ProjectsPage() {
         }
     };
 
+    // Reset page when search changes
+    useEffect(() => { setPage(1); }, [search]);
+
     if (authLoading || (!user && !authLoading)) return null;
+
+    const filtered = projects.filter((p) => {
+        const q = search.toLowerCase();
+        return !q || p.title.toLowerCase().includes(q) || (p.description ?? "").toLowerCase().includes(q);
+    });
+    const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+    const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
     return (
         <div className="max-w-5xl mx-auto px-4 py-8 md:py-12">
@@ -180,14 +192,12 @@ export default function ProjectsPage() {
 
             {/* Projects list */}
             {loading ? (
-                <div className="grid gap-4">
-                    {[...Array(3)].map((_, i) => (
-                        <div key={i} className="animate-pulse bg-white rounded-2xl border border-gray-200 p-5 flex gap-4">
-                            <div className="w-24 h-24 bg-gray-200 rounded-xl flex-shrink-0" />
-                            <div className="flex-1 space-y-2">
-                                <div className="h-5 bg-gray-200 rounded w-1/3" />
-                                <div className="h-4 bg-gray-200 rounded w-1/2" />
-                            </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[...Array(4)].map((_, i) => (
+                        <div key={i} className="animate-pulse bg-white rounded-2xl border border-gray-200 p-5">
+                            <div className="aspect-video bg-gray-200 rounded-xl mb-4" />
+                            <div className="h-5 bg-gray-200 rounded w-2/3 mb-2" />
+                            <div className="h-4 bg-gray-200 rounded w-1/2" />
                         </div>
                     ))}
                 </div>
@@ -204,66 +214,101 @@ export default function ProjectsPage() {
                         Create your first project
                     </button>
                 </div>
+            ) : filtered.length === 0 ? (
+                <div className="text-center py-12 text-gray-400 text-sm bg-white rounded-2xl border border-gray-200">
+                    No projects match &ldquo;{search}&rdquo;
+                </div>
             ) : (
-                <div className="grid gap-4">
-                    {projects
-                        .filter((p) => {
-                            const q = search.toLowerCase();
-                            return !q || p.title.toLowerCase().includes(q) || (p.description ?? "").toLowerCase().includes(q);
-                        })
-                        .map((project) => {
-                        const thumb = project.entries?.[0]?.images?.[0]?.url;
-                        return (
-                            <div
-                                key={project.id}
-                                className="bg-white rounded-2xl border border-gray-200 hover:border-[#b42d27] transition-colors"
-                            >
-                                <Link href={`/projects/${project.id}`} className="flex gap-4 p-5">
+                <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {paginated.map((project) => {
+                            const thumb = project.entries?.[0]?.images?.[0]?.url;
+                            return (
+                                <div
+                                    key={project.id}
+                                    className="bg-white rounded-2xl border border-gray-200 hover:border-[#b42d27] hover:shadow-md transition-all flex flex-col overflow-hidden"
+                                >
                                     {/* Thumbnail */}
-                                    <div className="w-24 h-24 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden">
-                                        {thumb ? (
-                                            <img src={thumb} alt={project.title} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-3xl opacity-30">🖼️</div>
-                                        )}
-                                    </div>
+                                    <Link href={`/projects/${project.id}`} className="block">
+                                        <div className="aspect-video bg-gray-100 overflow-hidden">
+                                            {thumb ? (
+                                                <img src={thumb} alt={project.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-5xl opacity-20">🖼️</div>
+                                            )}
+                                        </div>
+                                    </Link>
                                     {/* Info */}
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="text-lg font-semibold text-gray-900 hover:text-[#b42d27] transition-colors truncate">
-                                            {project.title}
-                                        </h3>
-                                        {project.description && (
-                                            <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">{project.description}</p>
-                                        )}
-                                        <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
-                                            <span>{project._count.entries} / 50 entries</span>
-                                            <span>·</span>
-                                            <span>Updated {new Date(project.updatedAt).toLocaleDateString()}</span>
+                                    <div className="p-4 flex-1 flex flex-col">
+                                        <Link href={`/projects/${project.id}`} className="block flex-1">
+                                            <h3 className="text-base font-semibold text-gray-900 hover:text-[#b42d27] transition-colors line-clamp-1">
+                                                {project.title}
+                                            </h3>
+                                            {project.description && (
+                                                <p className="text-sm text-gray-500 mt-1 line-clamp-2">{project.description}</p>
+                                            )}
+                                            <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
+                                                <span>{project._count.entries} / 50 entries</span>
+                                                <span>·</span>
+                                                <span>Updated {new Date(project.updatedAt).toLocaleDateString()}</span>
+                                            </div>
+                                        </Link>
+                                        <div className="flex justify-end mt-3 pt-3 border-t border-gray-100">
+                                            <button
+                                                type="button"
+                                                onClick={() => setDeleteModal({ isOpen: true, id: project.id, title: project.title })}
+                                                className="text-xs text-gray-400 hover:text-[#b42d27] transition-colors"
+                                            >
+                                                Delete
+                                            </button>
                                         </div>
                                     </div>
-                                </Link>
-                                {/* Delete button */}
-                                <div className="px-5 pb-4 flex justify-end">
-                                    <button
-                                        type="button"
-                                        onClick={() => setDeleteModal({ isOpen: true, id: project.id, title: project.title })}
-                                        className="text-xs text-gray-400 hover:text-[#b42d27] transition-colors"
-                                    >
-                                        Delete
-                                    </button>
                                 </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-between mt-6">
+                            <p className="text-sm text-gray-400">
+                                {filtered.length} projects · page {page} of {totalPages}
+                            </p>
+                            <div className="flex gap-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                    disabled={page === 1}
+                                    className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    ← Prev
+                                </button>
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                                    <button
+                                        key={p}
+                                        type="button"
+                                        onClick={() => setPage(p)}
+                                        className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+                                            p === page
+                                                ? "bg-[#b42d27] text-white border-[#b42d27]"
+                                                : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                                        }`}
+                                    >
+                                        {p}
+                                    </button>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                    disabled={page === totalPages}
+                                    className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Next →
+                                </button>
                             </div>
-                        );
-                    })}
-                    {search && projects.filter((p) => {
-                        const q = search.toLowerCase();
-                        return p.title.toLowerCase().includes(q) || (p.description ?? "").toLowerCase().includes(q);
-                    }).length === 0 && (
-                        <div className="text-center py-12 text-gray-400 text-sm">
-                            No projects match &ldquo;{search}&rdquo;
                         </div>
                     )}
-                </div>
+                </>
             )}
 
             <ConfirmModal
