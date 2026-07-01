@@ -54,6 +54,14 @@ export default function ProjectDetailPage({ params }: PageProps) {
     const [deletingProject, setDeletingProject] = useState(false);
     const [lightbox, setLightbox] = useState<string | null>(null);
     const [collapsedEntries, setCollapsedEntries] = useState<Set<string>>(new Set());
+    const [copiedEntryId, setCopiedEntryId] = useState<string | null>(null);
+
+    const handleCopyPrompt = (entryId: string, text: string) => {
+        navigator.clipboard.writeText(text).then(() => {
+            setCopiedEntryId(entryId);
+            setTimeout(() => setCopiedEntryId(null), 2000);
+        });
+    };
 
     useEffect(() => {
         if (!authLoading && !user) router.push("/");
@@ -289,6 +297,15 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                             )}
                                             <span className="text-gray-300 text-xs ml-1">{isCollapsed ? "▶ show" : "▼ hide"}</span>
                                         </button>
+                                        <div className="flex items-center justify-between mb-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleCopyPrompt(entry.id, entry.promptText!)}
+                                                className="text-xs px-2.5 py-1 rounded-lg border border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-[#b42d27] transition-colors"
+                                            >
+                                                {copiedEntryId === entry.id ? "Copied!" : "Copy"}
+                                            </button>
+                                        </div>
                                         {!isCollapsed && (
                                             <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans bg-gray-50 rounded-lg px-4 py-3 border border-gray-100">{entry.promptText}</pre>
                                         )}
