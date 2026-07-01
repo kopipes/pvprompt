@@ -45,6 +45,7 @@ export default function PromptDetailPage({ params }: PageProps) {
     const [deleting, setDeleting] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [lightbox, setLightbox] = useState<string | null>(null);
 
     useEffect(() => {
         fetch(`/api/prompts/${resolvedParams.id}`)
@@ -142,13 +143,17 @@ export default function PromptDetailPage({ params }: PageProps) {
                             <div className="absolute top-3 left-3 px-3 py-1 bg-black/70 rounded-lg text-xs font-medium text-white z-10">
                                 Before / Reference
                             </div>
-                            <div className="rounded-2xl overflow-hidden bg-gray-100 border border-gray-200">
+                            <button
+                                type="button"
+                                onClick={() => setLightbox(prompt.beforeImage)}
+                                className="w-full rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 hover:opacity-90 transition-opacity cursor-zoom-in"
+                            >
                                 <img
                                     src={prompt.beforeImage}
                                     alt="Before"
                                     className="w-full object-contain max-h-[400px]"
                                 />
-                            </div>
+                            </button>
                         </div>
                     )}
                     {prompt.afterImage && (
@@ -156,13 +161,17 @@ export default function PromptDetailPage({ params }: PageProps) {
                             <div className="absolute top-3 left-3 px-3 py-1 bg-[#b42d27] rounded-lg text-xs font-medium text-white z-10">
                                 After / Result
                             </div>
-                            <div className="rounded-2xl overflow-hidden bg-gray-100 border border-gray-200">
+                            <button
+                                type="button"
+                                onClick={() => setLightbox(prompt.afterImage)}
+                                className="w-full rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 hover:opacity-90 transition-opacity cursor-zoom-in"
+                            >
                                 <img
                                     src={prompt.afterImage}
                                     alt="After"
                                     className="w-full object-contain max-h-[400px]"
                                 />
-                            </div>
+                            </button>
                         </div>
                     )}
                 </div>
@@ -288,6 +297,34 @@ export default function PromptDetailPage({ params }: PageProps) {
                 onCancel={() => setShowDeleteModal(false)}
                 isLoading={deleting}
             />
+
+            {/* Lightbox */}
+            {lightbox && (
+                <div
+                    className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4"
+                    onClick={() => setLightbox(null)}
+                    onKeyDown={(e) => e.key === "Escape" && setLightbox(null)}
+                    tabIndex={-1}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Image preview"
+                >
+                    <button
+                        type="button"
+                        onClick={() => setLightbox(null)}
+                        className="absolute top-4 right-4 text-white/70 hover:text-white text-3xl leading-none transition-colors"
+                        aria-label="Close"
+                    >
+                        ✕
+                    </button>
+                    <img
+                        src={lightbox}
+                        alt="preview"
+                        className="max-w-full max-h-[90vh] rounded-xl shadow-2xl object-contain"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )}
         </div>
     );
 }
