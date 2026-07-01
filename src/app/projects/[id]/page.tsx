@@ -232,33 +232,20 @@ export default function ProjectDetailPage({ params }: PageProps) {
                         const isCollapsed = collapsedEntries.has(entry.id);
                         return (
                         <div key={entry.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                            {/* Entry header — click to collapse/expand */}
-                            <button
-                                type="button"
-                                onClick={() => toggleCollapse(entry.id)}
-                                className="w-full flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm font-medium text-gray-500">Entry #{idx + 1}</span>
-                                    {isCollapsed && entry.promptText && (
-                                        <span className="text-xs text-gray-400 truncate max-w-[200px] sm:max-w-sm">
-                                            — {entry.promptText.slice(0, 60)}{entry.promptText.length > 60 ? "…" : ""}
-                                        </span>
-                                    )}
-                                </div>
+                            {/* Entry header */}
+                            <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 bg-gray-50">
+                                <span className="text-sm font-medium text-gray-500">Entry #{idx + 1}</span>
                                 <div className="flex items-center gap-3">
                                     <span className="text-xs text-gray-400">{new Date(entry.createdAt).toLocaleDateString()}</span>
                                     {canEdit && (
-                                        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                                        <div className="flex gap-2">
                                             <Link href={`/projects/${id}/entries/${entry.id}/edit`} className="text-xs text-gray-400 hover:text-gray-700 transition-colors">Edit</Link>
                                             <button type="button" onClick={() => setDeleteModal({ isOpen: true, entryId: entry.id, idx })} className="text-xs text-gray-400 hover:text-[#b42d27] transition-colors">Delete</button>
                                         </div>
                                     )}
-                                    <span className="text-gray-400 text-xs">{isCollapsed ? "▶" : "▼"}</span>
                                 </div>
-                            </button>
+                            </div>
 
-                            {!isCollapsed && (
                             <div className="p-5 space-y-4">
                                 {/* Notes */}
                                 {entry.notes && (
@@ -282,21 +269,34 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                     </div>
                                 )}
 
-                                {/* Prompt */}
+                                {/* Prompt — collapsible */}
                                 {entry.promptText && (
                                     <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Prompt</p>
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleCollapse(entry.id)}
+                                            className="flex items-center gap-2 mb-1 group"
+                                        >
+                                            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide group-hover:text-gray-600 transition-colors">Prompt</p>
                                             {entry.prompt && (
                                                 <Link
                                                     href={`/prompts/${entry.prompt.id}`}
                                                     className="text-xs px-2 py-0.5 rounded-md bg-red-50 text-[#b42d27] border border-red-100 hover:bg-red-100 transition-colors"
+                                                    onClick={(e) => e.stopPropagation()}
                                                 >
                                                     From library: {entry.prompt.title}
                                                 </Link>
                                             )}
-                                        </div>
-                                        <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans bg-gray-50 rounded-lg px-4 py-3 border border-gray-100">{entry.promptText}</pre>
+                                            <span className="text-gray-300 text-xs ml-1">{isCollapsed ? "▶ show" : "▼ hide"}</span>
+                                        </button>
+                                        {!isCollapsed && (
+                                            <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans bg-gray-50 rounded-lg px-4 py-3 border border-gray-100">{entry.promptText}</pre>
+                                        )}
+                                        {isCollapsed && (
+                                            <p className="text-xs text-gray-400 italic truncate">
+                                                {entry.promptText.slice(0, 80)}{entry.promptText.length > 80 ? "…" : ""}
+                                            </p>
+                                        )}
                                     </div>
                                 )}
 
@@ -314,7 +314,6 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                     </div>
                                 )}
                             </div>
-                            )}
                         </div>
                         );
                     })}
