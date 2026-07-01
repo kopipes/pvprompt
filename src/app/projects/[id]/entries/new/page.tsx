@@ -3,6 +3,7 @@
 import { useState, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@/components/AuthContext";
 import PromptPickerModal from "@/components/PromptPickerModal";
 
 interface UploadedImage {
@@ -17,6 +18,8 @@ interface PageProps {
 export default function NewEntryPage({ params }: PageProps) {
     const { id } = use(params);
     const router = useRouter();
+    const { user } = useAuth();
+    const isAdmin = user?.role === "admin";
 
     const [notes, setNotes] = useState("");
     const [promptText, setPromptText] = useState("");
@@ -265,6 +268,7 @@ export default function NewEntryPage({ params }: PageProps) {
 
             <PromptPickerModal
                 isOpen={pickerOpen}
+                isAdmin={isAdmin}
                 onClose={() => setPickerOpen(false)}
                 onSelect={(prompt) => {
                     setPromptText(prompt.promptText);

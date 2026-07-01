@@ -16,9 +16,10 @@ interface PromptPickerModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSelect: (prompt: PickerPrompt) => void;
+    isAdmin?: boolean;
 }
 
-export default function PromptPickerModal({ isOpen, onClose, onSelect }: PromptPickerModalProps) {
+export default function PromptPickerModal({ isOpen, onClose, onSelect, isAdmin = false }: PromptPickerModalProps) {
     const [prompts, setPrompts] = useState<PickerPrompt[]>([]);
     const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState("");
@@ -28,12 +29,14 @@ export default function PromptPickerModal({ isOpen, onClose, onSelect }: PromptP
         if (!isOpen) return;
         setSearch("");
         setLoading(true);
-        fetch("/api/prompts?limit=100&mine=true")
+        // Admin sees all prompts; others only see their own
+        const url = isAdmin ? "/api/prompts?limit=100" : "/api/prompts?limit=100&mine=true";
+        fetch(url)
             .then((r) => r.json())
             .then((data) => setPrompts(data.prompts ?? []))
             .catch(() => setPrompts([]))
             .finally(() => setLoading(false));
-    }, [isOpen]);
+    }, [isOpen, isAdmin]);
 
     // Focus search input when modal opens
     useEffect(() => {
