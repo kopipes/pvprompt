@@ -31,6 +31,7 @@ export default function ProjectsPage() {
         isOpen: false, id: "", title: "",
     });
     const [deleting, setDeleting] = useState(false);
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -101,7 +102,7 @@ export default function ProjectsPage() {
     return (
         <div className="max-w-5xl mx-auto px-4 py-8 md:py-12">
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-4">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">My Projects</h1>
                     <p className="text-gray-500 mt-1">Kumpulkan gambar dan prompt dalam satu project</p>
@@ -113,6 +114,17 @@ export default function ProjectsPage() {
                 >
                     + New Project
                 </button>
+            </div>
+
+            {/* Search */}
+            <div className="mb-6">
+                <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search projects..."
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#b42d27]/20 focus:border-[#b42d27] bg-white text-sm transition-colors"
+                />
             </div>
 
             {/* Create form */}
@@ -194,7 +206,12 @@ export default function ProjectsPage() {
                 </div>
             ) : (
                 <div className="grid gap-4">
-                    {projects.map((project) => {
+                    {projects
+                        .filter((p) => {
+                            const q = search.toLowerCase();
+                            return !q || p.title.toLowerCase().includes(q) || (p.description ?? "").toLowerCase().includes(q);
+                        })
+                        .map((project) => {
                         const thumb = project.entries?.[0]?.images?.[0]?.url;
                         return (
                             <div
@@ -238,6 +255,14 @@ export default function ProjectsPage() {
                             </div>
                         );
                     })}
+                    {search && projects.filter((p) => {
+                        const q = search.toLowerCase();
+                        return p.title.toLowerCase().includes(q) || (p.description ?? "").toLowerCase().includes(q);
+                    }).length === 0 && (
+                        <div className="text-center py-12 text-gray-400 text-sm">
+                            No projects match &ldquo;{search}&rdquo;
+                        </div>
+                    )}
                 </div>
             )}
 
