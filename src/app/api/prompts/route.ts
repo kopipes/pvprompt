@@ -15,9 +15,12 @@ export async function GET(request: NextRequest) {
         const mine = searchParams.get("mine") === "true";
         const auth = await getAuthUser();
 
-        const where: Record<string, unknown> = {
-            projectEntries: { none: {} },
-        };
+        const where: Record<string, unknown> = {};
+
+        // Hide prompts already linked to project entries — only on public browse, not the picker
+        if (!mine) {
+            where.projectEntries = { none: {} };
+        }
 
         if (aiTool) where.aiTool = aiTool;
         if (categoryId) {
